@@ -19,13 +19,13 @@ Implementamos a poda alfa-beta com profundidade -1 (sem) em `tttm_minimax.py`, p
 Respostas das perguntas do enunciado:
 
 1. **O minimax sempre ganha ou empata jogando contra o randomplayer?**  
-   Sim. fiz quem chegava a 10 primeiro e deu 10:8:0 (v:e:d)
+   Sim. fizemos quem chegava a 10 primeiro e deu 10:8:0 (v:e:d)
 
 2. **O minimax sempre empata consigo mesmo?**  
    Sim, deterministicamente.
 
 3. **O minimax não perde para você quando você usa a sua melhor estratégia?**  
-   Não. Perdi pra ele até aprender a empatar.
+   Não. Perdemos pra ele até aprender a empatar.
 
 ---
 
@@ -35,9 +35,9 @@ Respostas das perguntas do enunciado:
 
 Para fazer a heurística customizada, nos inspiramos [nesse artigo](https://github.com/Jules-Lion/kurwa/blob/master/Dokumentation/An%20Analysis%20of%20Heuristics%20in%20Othello.pdf) :
 
-1. **Cantos:** Canto no Othello é estavel, então nunca vai ser reconquistada pelo outro.. Demos peso +100 pra quem tem o canto. Por consequência, as casas adjacentes devem ser penalizadas (penalizamos -25 pra lateral e -50 diagonal).
+1. **Cantos:** Canto no Othello é estavel, então nunca vai ser reconquistada pelo outro. Demos peso +100 pra quem tem o canto. Por consequência, as casas adjacentes devem ser penalizadas (penalizamos -25 pra lateral e -50 diagonal).
 2. **Mobilidade:** Calculamos os movimentos válidos do jogador. Ter mais opções de jogada que o oponente pode forçar ele a ficar sem jogadas boas ou passar a vez.
-3. **Paridade de peças por fase do jogo:** No começo do jogo (mais de 40 casas vazias), ter muitas peças é ruim porque tem muitos alvos. Então botei peso negativo pra número de peças no início. Conforme o tabuleiro vai enchendo (entre 40 e 16), o peso fica positivo, e no finalzinho (menos de 16 casas vazias) vira prioridade pegar o máximo de peças.
+3. **Paridade de peças por fase do jogo:** No começo do jogo (mais de 40 casas vazias), ter muitas peças é ruim porque tem muitos alvos. Então botamos peso negativo pra número de peças no início. Conforme o tabuleiro vai enchendo (entre 40 e 16), o peso fica positivo, e no finalzinho (menos de 16 casas vazias) vira prioridade pegar o máximo de peças.
 
 ---
 
@@ -72,5 +72,5 @@ Pro torneio juntei a melhor configuração que funcionou nos testes:
 
 - Usa a heurística customizada pra avaliar as folhas.
 - Usa aprofundamento iterativo com limite de 4 segundos.
-- Adicionei uma ordenação prévia de jogadas (`order_key`): ele olha uma matriz estática simples e avalia primeiro os movimentos em casas boas (como cantos) antes dos ruins. Isso faz a poda alfa-beta cortar muito mais ramos logo no início da busca e consegue descer mais níveis de profundidade dentro dos 4 segundos.
+- Adicionamos uma ordenação prévia de jogadas (`order_key`): ele olha uma matriz estática simples e avalia primeiro os movimentos em casas boas (como cantos) antes dos ruins. Isso faz a poda alfa-beta cortar muito mais ramos logo no início da busca e consegue descer mais níveis de profundidade dentro dos 4 segundos.
 - Contra o jogador aleatório no servidor de teste, o agente fechou a partida em **64 a 0**, ocupando o tabuleiro inteiro.
