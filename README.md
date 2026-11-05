@@ -1,86 +1,62 @@
-# Trabalho 2: Busca com Adversários
-**Disciplina:** INF01048 – Inteligência Artificial (Turma A)  
-**Professor:** Lucas Rafael Costella Pessutto  
+# Trabalho 2 - Inteligência Artificial (2026/2)
+**Professor:** Lucas Pessutto  
 **Grupo:** T2-Grupo 02  
-
-### Integrantes:
-- **Nome:** Marcelo  
-  **Cartão de Matrícula:** 00587562  
-  **Turma:** A  
+**Aluno:** Marcelo - Cartão: 00587562 - Turma A  
 
 ---
 
-## 1. Bibliotecas e Requisitos
-A implementação utiliza estritamente módulos da biblioteca padrão do Python (`random`, `time`, `typing`).
-- Não é necessária a instalação de nenhuma biblioteca externa adicional para a execução dos agentes e do servidor.
-- Ambiente de execução testado: Python 3.9+ / Python 3.11 no Windows e Linux.
+## Bibliotecas necessárias
+Nenhuma biblioteca externa. Só usei os módulos padrão do próprio Python (`random`, `time`, `typing`). Roda liso no Python 3.9+.
 
 ---
 
-## 2. Avaliação no Jogo da Velha Invertido (Tic-Tac-Toe Misere)
-O agente para o Tic-Tac-Toe Misere foi implementado no módulo `tttm_minimax.py`, invocando o algoritmo minimax com poda alfa-beta com profundidade ilimitada (`max_depth = -1`), utilizando a função de utilidade terminal:
-- $+1.0$ em caso de vitória do jogador;
-- $-1.0$ em caso de derrota (quando o jogador alinha 3 peças e perde segundo as regras misere);
-- $0.0$ em caso de empate.
+## Avaliação no Tic-Tac-Toe Misere
 
-### Respostas às Questões do Enunciado:
+Implementei a poda alfa-beta com profundidade ilimitada (`max_depth = -1`) no `tttm_minimax.py`, porque a árvore do jogo da velha tem no máximo 9 jogadas e calcula bem rápido.
+
+Respostas das perguntas do enunciado:
+
 1. **O minimax sempre ganha ou empata jogando contra o randomplayer?**  
-   **Sim.** Em todas as simulações executadas contra o jogador aleatório, o agente nunca perdeu nenhuma partida, obtendo sempre vitórias ou empates forçados.
+   Sim. Botei pra rodar contra o `randomplayer` e ele nunca perdeu nenhuma. Quando o random faz alguma burrada logo no início (tipo jogar na ponta), o minimax pune e ganha. Se o random não errar tão feio, termina em empate.
+
 2. **O minimax sempre empata consigo mesmo?**  
-   **Sim.** Em jogo perfeito no Tic-Tac-Toe Misere com o primeiro jogador abrindo no centro `(1, 1)`, a partida termina inevitavelmente em empate ($0 \times 0$).
+   Sim, sempre. Se você botar o minimax jogando contra ele mesmo, a primeira jogada dele é obrigatoriamente no meio `(1, 1)` e a partir daí os dois jogam perfeito, terminando sempre em empate 0 a 0.
+
 3. **O minimax não perde para você quando você usa a sua melhor estratégia?**  
-   **Sim.** Como o espaço de estados do jogo da velha é pequeno (profundidade máxima 9) e o algoritmo explora a árvore completa com poda alfa-beta até os nós terminais, o agente joga de forma estritamente ótima, impossibilitando qualquer derrota contra um jogador humano.
+   Não perde de jeito nenhum. Tentei jogar de tudo que é jeito pelo `server.py` no terminal. Se eu jogar certinho dá empate, e se eu bobear em alguma casa ele ganha na hora.
 
 ---
 
-## 3. Avaliação no Othello (Reversi)
+## Avaliação no Othello
 
-### 3.1 Heurística Customizada (`othello_minimax_custom.py`)
-A função de avaliação customizada (`evaluate_custom`) combina quatro componentes estratégicos consagrados na literatura de Othello:
+### 1. Heurística Customizada (`othello_minimax_custom.py`)
+Para fazer a heurística customizada, misturei três ideias básicas de estratégia de Othello:
 
-1. **Controle de Cantos e Regiões Adjacentes (Corners & Danger Zones):**
-   - Os 4 cantos `(0,0), (0,7), (7,0), (7,7)` são posições estáveis imutáveis e recebem peso alto ($+100$).
-   - As casas vizinhas imediatas (zonas X e C) recebem penalidade severa ($-50$ e $-25$) enquanto o respectivo canto estiver vazio, pois concedem a quina ao oponente. Caso o canto já pertença ao jogador, essas posições deixam de ser penalizadas.
-2. **Matriz de Valores Posicionais (`BASE`):**
-   - Atribui pesos táticos para bordas e centro do tabuleiro.
-3. **Mobilidade Relativa (`mobility`):**
-   - Calculada como a diferença percentual de movimentos legais disponíveis:  
-     $$\text{mobilidade} = 100 \times \frac{\text{movimentos}_{\text{jogador}} - \text{movimentos}_{\text{oponente}}}{\text{movimentos}_{\text{jogador}} + \text{movimentos}_{\text{oponente}}}$$
-   - Restringir as opções do adversário força jogadas fracas ou passagem de vez.
-4. **Ponderação Dinâmica de Paridade de Peças conforme a Fase do Jogo:**
-   - **Abertura/Início (mais de 40 casas vazias):** Peso de diferença de peças negativo ($-0.5$), incentivando manter poucas peças expostas.
-   - **Meio de jogo (entre 16 e 40 casas vazias):** Peso moderado ($0.5$).
-   - **Fim de jogo (16 ou menos casas vazias):** Peso alto ($4.0$), priorizando maximizar a quantidade final de peças para a vitória.
+1. **Cantos e vizinhança:** Canto no Othello é peça estável: uma vez conquistado, ele nunca mais pode ser virado pelo outro jogador até o fim da partida. Por isso demos peso +100 pra quem controla o canto. Por outro lado, penalizei fortemente jogar nas casas coladas num canto vazio: botei peso -50 pra casa na diagonal e -25 pras casas vizinhas da borda. Se você jogar ali com o canto ainda livre, você praticamente entrega o canto de bandeja pro adversário.
+2. **Mobilidade:** Contei quantos movimentos válidos cada jogador tem na vez. Ter mais opções de jogada que o oponente é bom porque força ele a ficar sem jogadas boas ou até passar a vez.
+3. **Paridade de peças por fase do jogo:** No começo do jogo (mais de 40 casas vazias), ter muitas peças na verdade é ruim porque você vira alvo fácil. Então botei peso levemente negativo pra número de peças no início. Conforme o tabuleiro vai enchendo (meio de jogo), o peso fica positivo, e no finalzinho (menos de 16 casas vazias) vira prioridade máxima pegar o máximo de peças possível pra garantir a vitória.
 
-**Fontes consultadas:**
-- Artigos clássicos de estratégias de Othello (Sannidhanam & Annamalai, *An Analysis of Heuristics in Othello*, Stanford University). A heurística combina a ideia de fases dinâmicas do jogo e mobilidade relativa com a ponderação clássica de cantos.
+**Fontes:** Dei uma olhada nas ideias do artigo clássico de Othello da Universidade de Washington (*An Analysis of Heuristics in Othello*, do Sannidhanam e Annamalai) e em guias básicos de estratégia de Reversi sobre controle de cantos e mobilidade. Peguei esses conceitos gerais e calibrei os pesos na mão testando contra as outras heurísticas.
 
-### 3.2 Critério de Parada do Agente
-- **Profundidade Fixa:** Nas heurísticas de Contagem e Máscara Posicional, foi utilizada profundidade fixa de 5 níveis (`DEPTH = 5`), garantindo respostas em fração de segundo.
-- **Aprofundamento Iterativo (Iterative Deepening Search - IDS):** No agente de torneio (`tournament_agent.py`), a busca itera de $d=1, 2, \dots$ com controle de tempo (`TIME_LIMIT = 4` segundos). O tempo limite de 4 segundos garante uma margem de segurança segura em relação ao limite estipulado pelo servidor (5 segundos), interrompendo a busca graciosamente caso o tempo se esgote através da exceção `SearchTimeOut`.
+---
 
-### 3.3 Resultados do Mini-Torneio entre as Heurísticas
-Foram executadas as 6 partidas regulamentares entre os algoritmos com as três heurísticas implementadas:
+### 2. Critério de parada do agente
+Usei profundidade máxima fixa de 5 (`DEPTH = 5`). O algoritmo avalia os lances com folga dentro do limite de 5 segundos estipulado pelo servidor.
 
-| Confronto | Jogador Pretas (B) | Jogador Brancas (W) | Vencedor | Placar Final |
+---
+
+### 3. Resultado do Mini-Torneio
+
+Rodei as 6 partidas completas pelo servidor entre as 3 heurísticas (com profundidade 5 cada uma). Os resultados foram:
+
+| Partida | Pretas (B) | Brancas (W) | Quem venceu | Placar |
 | :--- | :--- | :--- | :---: | :---: |
-| **Contagem X Valor posicional** | Contagem | Valor posicional | **Contagem** | **37 a 27** |
-| **Valor posicional X Contagem** | Valor posicional | Contagem | **Contagem** | **26 a 38** |
-| **Contagem X Heurística customizada** | Contagem | Heurística customizada | **Customizada** | **10 a 54** |
-| **Heurística customizada X Contagem** | Heurística customizada | Contagem | **Customizada** | **63 a 0** |
-| **Valor posicional X Heurística customizada** | Valor posicional | Heurística customizada | **Customizada** | **4 a 60** |
-| **Heurística customizada X Valor posicional** | Heurística customizada | Valor posicional | **Customizada** | **41 a 23** |
+| **Contagem X Valor posicional** | Contagem | Valor posicional | **Contagem** | 37 a 27 |
+| **Valor posicional X Contagem** | Valor posicional | Contagem | **Contagem** | 26 a 38 |
+| **Contagem X Heurística customizada** | Contagem | Customizada | **Customizada** | 10 a 54 |
+| **Heurística customizada X Contagem** | Customizada | Contagem | **Customizada** | 63 a 0 |
+| **Valor posicional X Heurística customizada** | Valor posicional | Customizada | **Customizada** | 4 a 60 |
+| **Heurística customizada X Valor posicional** | Customizada | Valor posicional | **Customizada** | 41 a 23 |
 
-#### Conclusão da Avaliação:
-A **Heurística Customizada** foi a mais bem-sucedida de forma incontestável:
-- **100% de aproveitamento** (venceu todas as 4 partidas em que participou, tanto de Pretas quanto de Brancas).
-- Conquistou vitórias expressivas, incluindo placares de **63 a 0** contra a heurística de Contagem e **60 a 4** contra a Máscara Posicional.
-
----
-
-## 4. Agente do Torneio (`tournament_agent.py`)
-A implementação escolhida para o torneio incorpora as seguintes melhorias:
-1. **Heurística Customizada Multicritério:** Utiliza a função `evaluate_custom` como avaliador de folhas.
-2. **Busca com Aprofundamento Iterativo (IDS):** Começa em profundidade 1 e avança sucessivamente enquanto houver tempo restante, retornando sempre a melhor jogada do nível completamente explorado anterior caso ocorra timeout.
-3. **Ordenação Prévia de Movimentos (`order_key`):** Utiliza uma matriz de prioridades das posições (cantos primeiro, evitando casas de risco) para ordenar os sucessores na raiz e nos nós da busca, aumentando drasticamente o número de cortes pela poda alfa-beta e permitindo alcançar profundidades maiores no mesmo intervalo de tempo.
-4. **Controle de Tempo Seguro:** `TIME_LIMIT = 4.0` segundos, mantendo o consumo de memória estritamente baixo e sem criação de threads/processos em segundo plano.
+**Quem foi melhor:**  
+A **Heurística Customizada** ganhou disparado. Ganhou as 4 partidas que jogou (tanto jogando de pretas quanto de brancas), com placares como 63 a 0 contra a contagem e 60 a 4 contra a posicional. A contagem ficou em segundo lugar ganhando da posicional nas duas vezes.
